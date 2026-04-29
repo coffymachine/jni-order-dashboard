@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-  // Only allow GET requests
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -12,6 +11,13 @@ export default async function handler(req, res) {
   }
 
   try {
+    const today = new Date();
+    const eightDaysOut = new Date();
+    eightDaysOut.setDate(today.getDate() + 8);
+
+    const todayStr = today.toISOString().split('T')[0];
+    const eightDaysOutStr = eightDaysOut.toISOString().split('T')[0];
+
     const response = await fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
       method: 'POST',
       headers: {
@@ -19,42 +25,34 @@ export default async function handler(req, res) {
         'Notion-Version': '2022-06-28',
         'Content-Type': 'application/json',
       },
-      const today = new Date();
-const eightDaysOut = new Date();
-eightDaysOut.setDate(today.getDate() + 8);
-
-// ...then inside the fetch body:
-body: JSON.stringify({
-  filter: {
-    and: [
-      {
-        or: [
-          { property: 'Status', status: { equals: 'Not started' } },
-          { property: 'Status', status: { equals: 'Quoted' } },
-          { property: 'Status', status: { equals: 'In progress' } },
+      body: JSON.stringify({
+        filter: {
+          and: [
+            {
+              or: [
+                { property: 'Status', status: { equals: 'Not started' } },
+                { property: 'Status', status: { equals: 'Quoted' } },
+                { property: 'Status', status: { equals: 'In progress' } },
+              ],
+            },
+            {
+              property: 'Due By',
+              date: { on_or_after: todayStr },
+            },
+            {
+              property: 'Due By',
+              date: { on_or_before: eightDaysOutStr },
+            },
+          ],
+        },
+        sorts: [
+          {
+            property: 'Due By',
+            direction: 'ascending',
+          },
         ],
-      },
-      {
-        property: 'Due By',
-        date: {
-          on_or_after: today.toISOString().split('T')[0],
-        },
-      },
-      {
-        property: 'Due By',
-        date: {
-          on_or_before: eightDaysOut.toISOString().split('T')[0],
-        },
-      },
-    ],
-  },
-  sorts: [
-    {
-      property: 'Due By',
-      direction: 'ascending',
-    },
-  ],
-}),
+      }),
+    });
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -65,7 +63,6 @@ body: JSON.stringify({
     const data = await response.json();
 
     const orders = data.results.map(page => {
-      // Handle Employee - could be multi_select or rich_text
       let employee = '';
       const empProp = page.properties['Employee'];
       if (empProp?.multi_select) {
@@ -74,7 +71,6 @@ body: JSON.stringify({
         employee = empProp.rich_text[0]?.plain_text || '';
       }
 
-      // Handle Embellishment - could be multi_select or select
       let embellishment = '';
       const embProp = page.properties['Embellishment'];
       if (embProp?.multi_select) {
@@ -83,7 +79,6 @@ body: JSON.stringify({
         embellishment = embProp.select?.name || '';
       }
 
-      // Handle Bin - could be select or rich_text
       let bin = '';
       const binProp = page.properties['Bin'];
       if (binProp?.select) {
@@ -96,7 +91,7 @@ body: JSON.stringify({
         id: page.id,
         client: page.properties['Client']?.title?.[0]?.plain_text || 'Unknown',
         dueDate: page.properties['Due By']?.date?.start || '',
-        status: page.properties['Status']?.status?.name || page.properties['Status']?.select?.name || 'Not Started',
+        status: page.properties['Status']?.status?.name || page.properties['Status']?.select?.name || 'Not started',
         embellishment,
         employee,
         quantity: page.properties['Quantity']?.number || 0,
@@ -105,7 +100,6 @@ body: JSON.stringify({
       };
     });
 
-    // Cache for 25 seconds (slightly less than the 30s frontend refresh)
     res.setHeader('Cache-Control', 's-maxage=25, stale-while-revalidate');
     return res.status(200).json({ orders });
 
