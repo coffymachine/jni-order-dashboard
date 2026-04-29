@@ -1,22 +1,63 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 
+const EMPLOYEE_COLORS = [
+  { bg: '#1e3a5f', text: '#60a5fa' },
+  { bg: '#3b1f5e', text: '#c084fc' },
+  { bg: '#1a3a2a', text: '#4ade80' },
+  { bg: '#5e3a1a', text: '#fb923c' },
+  { bg: '#5e1a2a', text: '#f87171' },
+  { bg: '#1a3a5e', text: '#38bdf8' },
+  { bg: '#3a3a1a', text: '#facc15' },
+  { bg: '#1a5e5e', text: '#2dd4bf' },
+];
+
+const BIN_COLORS = [
+  { bg: '#1e1e2e', text: '#a9b1d6' },
+  { bg: '#1a1a2a', text: '#9aa5ce' },
+  { bg: '#2a1a2e', text: '#bb9af7' },
+  { bg: '#1a2a1a', text: '#9ece6a' },
+  { bg: '#2e1a1a', text: '#f7768e' },
+  { bg: '#2a2a1a', text: '#e0af68' },
+  { bg: '#1a2a2e', text: '#7dcfff' },
+  { bg: '#2a1a1e', text: '#ff9e64' },
+];
+
+const getColorByName = (name, palette) => {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return palette[Math.abs(hash) % palette.length];
+};
+
+const URGENCY = {
+  overdue:  { accent: '#ef4444', dim: '#450a0a', text: '#ef4444', label: 'OVERDUE' },
+  today:    { accent: '#f97316', dim: '#431407', text: '#f97316', label: 'TODAY' },
+  tomorrow: { accent: '#eab308', dim: '#422006', text: '#eab308', label: 'TOMORROW' },
+  ontrack:  { accent: '#22c55e', dim: '#052e16', text: '#22c55e', label: '' },
+  neutral:  { accent: '#52525b', dim: '#18181b', text: '#71717a', label: '' },
+};
+
+const STATUS_STYLE = {
+  'Quoted':      { bg: '#422006', text: '#fb923c' },
+  'Not started': { bg: '#1c1917', text: '#78716c' },
+  'In progress': { bg: '#172554', text: '#60a5fa' },
+  'Done':        { bg: '#052e16', text: '#4ade80' },
+};
+
 export default function Dashboard() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(null);
-  const [tick, setTick] = useState(0);
+  const [now, setNow] = useState(new Date());
 
   const fetchOrders = async () => {
     try {
       const res = await fetch('/api/orders');
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to load orders');
-      }
-
+      if (!res.ok) throw new Error(data.error || 'Failed to load orders');
       setOrders(data.orders);
       setLastRefresh(new Date());
       setError(null);
@@ -29,368 +70,341 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchOrders();
-    const refreshInterval = setInterval(fetchOrders, 30000);
-    const tickInterval = setInterval(() => setTick(t => t + 1), 1000);
-    return () => {
-      clearInterval(refreshInterval);
-      clearInterval(tickInterval);
-    };
+    const refresh = setInterval(fetchOrders, 30000);
+    const tick = setInterval(() => setNow(new Date()), 1000);
+    return () => { clearInterval(refresh); clearInterval(tick); };
   }, []);
 
   const getUrgency = (dueDate) => {
     if (!dueDate) return 'neutral';
     const due = new Date(dueDate);
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    due.setHours(0, 0, 0, 0);
-    const diff = Math.floor((due - today) / (1000 * 60 * 60 * 24));
+    due.setHours(0,0,0,0);
+    today.setHours(0,0,0,0);
+    const diff = Math.floor((due - today) / 86400000);
     if (diff < 0) return 'overdue';
     if (diff === 0) return 'today';
     if (diff === 1) return 'tomorrow';
     return 'ontrack';
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '--';
-    const d = new Date(dateString);
+  const formatDate = (ds) => {
+    if (!ds) return '--';
+    const d = new Date(ds);
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  const getStatusStyle = (status) => {
-    const map = {
-      'Quoted':      { bg: '#3f3f46', color: '#a1a1aa' },
-      'Not Started': { bg: '#1c1917', color: '#a8a29e' },
-      'In Progress': { bg: '#1e3a5f', color: '#60a5fa' },
-      'Complete':    { bg: '#052e16', color: '#4ade80' },
-    };
-    return map[status] || { bg: '#27272a', color: '#71717a' };
+  const secsSince = lastRefresh ? Math.floor((now - lastRefresh) / 1000) : null;
+
+  // Chip component for both employees and bin values
+  const Chip = ({ label, palette }) => {
+    const c = getColorByName(label, palette);
+    return (
+      <span style={{
+        display: 'inline-block',
+        padding: '0.2vh 0.5vw',
+        background: c.bg,
+        color: c.text,
+        fontSize: 'clamp(0.5rem, 1vh, 0.7rem)',
+        fontWeight: 700,
+        whiteSpace: 'nowrap',
+        letterSpacing: '0.5px',
+        borderRadius: '2px',
+      }}>
+        {label}
+      </span>
+    );
   };
 
-  const urgencyColors = {
-    overdue:  { accent: '#ef4444', dimmed: '#7f1d1d', text: '#ef4444' },
-    today:    { accent: '#f97316', dimmed: '#7c2d12', text: '#f97316' },
-    tomorrow: { accent: '#eab308', dimmed: '#713f12', text: '#eab308' },
-    ontrack:  { accent: '#22c55e', dimmed: '#14532d', text: '#22c55e' },
-    neutral:  { accent: '#52525b', dimmed: '#27272a', text: '#71717a' },
-  };
-
-  const urgencyLabels = {
-    overdue: 'OVERDUE',
-    today: 'DUE TODAY',
-    tomorrow: 'DUE TOMORROW',
-    ontrack: 'ON TRACK',
-    neutral: '',
-  };
-
-  const secondsSinceRefresh = lastRefresh
-    ? Math.floor((new Date() - lastRefresh) / 1000)
-    : null;
+  const COLS = '9vw 1fr 11vw 14vw 5vw 6vw 12vw 15vw';
 
   return (
     <>
       <Head>
-        <title>Order Dashboard</title>
+        <title>Order Board</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
-        <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
       </Head>
 
       <style global jsx>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { height: 100%; background: #09090b; color: #f4f4f5; }
-        body {
-          font-family: 'IBM Plex Mono', monospace;
-          background-image:
-            repeating-linear-gradient(
-              0deg,
-              transparent,
-              transparent 39px,
-              rgba(255,255,255,0.02) 39px,
-              rgba(255,255,255,0.02) 40px
-            );
+        html, body {
+          width: 100%; height: 100%; overflow: hidden;
+          background: #09090b;
+          font-family: 'JetBrains Mono', monospace;
+          color: #f4f4f5;
         }
       `}</style>
 
       <div style={{
-        minHeight: '100vh',
-        padding: '24px 32px',
-        maxWidth: '1800px',
-        margin: '0 auto',
+        width: '100vw',
+        height: '100vh',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        background: '#09090b',
+        backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(255,255,255,0.015) 59px, rgba(255,255,255,0.015) 60px)',
+        padding: '2vh 2.5vw',
+        gap: '1.2vh',
       }}>
 
-        {/* Header */}
+        {/* HEADER */}
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'flex-end',
-          marginBottom: '32px',
-          paddingBottom: '20px',
           borderBottom: '1px solid #27272a',
+          paddingBottom: '1vh',
+          flexShrink: 0,
         }}>
           <div>
             <div style={{
-              fontFamily: 'Barlow Condensed, sans-serif',
-              fontSize: '4rem',
+              fontFamily: 'Barlow Condensed',
+              fontSize: 'clamp(2rem, 5vh, 4rem)',
               fontWeight: 900,
-              letterSpacing: '-1px',
               textTransform: 'uppercase',
+              letterSpacing: '-1px',
               lineHeight: 1,
               color: '#f4f4f5',
             }}>
               ORDER BOARD
             </div>
             <div style={{
-              fontFamily: 'IBM Plex Mono, monospace',
-              fontSize: '0.7rem',
+              fontSize: 'clamp(0.5rem, 1vh, 0.75rem)',
               color: '#52525b',
-              marginTop: '6px',
-              letterSpacing: '2px',
+              letterSpacing: '3px',
               textTransform: 'uppercase',
+              marginTop: '0.3vh',
             }}>
-              Active Jobs &mdash; Sorted by Due Date
+              Active Jobs &mdash; Next 8 Days
             </div>
           </div>
-
           <div style={{ textAlign: 'right' }}>
             <div style={{
-              fontFamily: 'Barlow Condensed, sans-serif',
-              fontSize: '2.5rem',
+              fontFamily: 'Barlow Condensed',
+              fontSize: 'clamp(1.8rem, 4vh, 3rem)',
               fontWeight: 700,
-              color: '#f4f4f5',
               letterSpacing: '1px',
+              lineHeight: 1,
             }}>
-              {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+              {now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
             </div>
             <div style={{
-              fontSize: '0.65rem',
+              fontSize: 'clamp(0.5rem, 1vh, 0.7rem)',
               color: '#52525b',
               letterSpacing: '1px',
               textTransform: 'uppercase',
-              marginTop: '2px',
+              marginTop: '0.3vh',
             }}>
-              {secondsSinceRefresh !== null
-                ? `Refreshed ${secondsSinceRefresh}s ago`
-                : 'Loading...'}
+              {secsSince !== null ? `Refreshed ${secsSince}s ago` : 'Loading...'}
             </div>
           </div>
         </div>
 
-        {/* Column Headers */}
+        {/* COLUMN HEADERS */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: '120px 1fr 160px 180px 80px 90px 100px 220px',
-          gap: '12px',
-          padding: '0 16px 10px',
-          borderBottom: '1px solid #27272a',
-          marginBottom: '8px',
+          gridTemplateColumns: COLS,
+          gap: '1vw',
+          padding: '0 1vw',
+          flexShrink: 0,
         }}>
           {['Due', 'Client', 'Status', 'Embellishment', 'Qty', 'Time', 'Bin', 'Employee'].map(h => (
             <div key={h} style={{
-              fontSize: '0.6rem',
-              fontFamily: 'IBM Plex Mono, monospace',
+              fontFamily: 'JetBrains Mono',
+              fontSize: 'clamp(0.6rem, 1.2vh, 0.85rem)',
+              fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '2px',
-              color: '#52525b',
-            }}>{h}</div>
+              color: '#a1a1aa',
+              borderBottom: '2px solid #3f3f46',
+              paddingBottom: '0.6vh',
+            }}>
+              {h}
+            </div>
           ))}
         </div>
 
-        {/* States */}
+        {/* LOADING / ERROR / EMPTY */}
         {loading && (
-          <div style={{ padding: '80px 16px', textAlign: 'center', color: '#52525b', fontSize: '0.85rem', letterSpacing: '2px' }}>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#52525b', letterSpacing: '3px', fontSize: '0.8rem' }}>
             LOADING ORDERS...
           </div>
         )}
-
         {error && (
-          <div style={{
-            margin: '16px 0',
-            padding: '16px',
-            background: '#1c0a0a',
-            border: '1px solid #7f1d1d',
-            color: '#fca5a5',
-            fontSize: '0.8rem',
-            fontFamily: 'IBM Plex Mono, monospace',
-          }}>
+          <div style={{ padding: '1.5vh 1vw', background: '#1c0a0a', border: '1px solid #7f1d1d', color: '#fca5a5', fontSize: '0.8rem', flexShrink: 0 }}>
             ERROR: {error}
           </div>
         )}
-
         {!loading && !error && orders.length === 0 && (
-          <div style={{ padding: '80px 16px', textAlign: 'center', color: '#52525b' }}>
-            <div style={{ fontFamily: 'Barlow Condensed', fontSize: '2rem', fontWeight: 700, letterSpacing: '2px' }}>
-              ALL CLEAR
-            </div>
-            <div style={{ fontSize: '0.7rem', marginTop: '8px', letterSpacing: '1px' }}>No active orders</div>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#52525b' }}>
+            <div style={{ fontFamily: 'Barlow Condensed', fontSize: 'clamp(1.5rem, 4vh, 2.5rem)', fontWeight: 700, letterSpacing: '3px' }}>ALL CLEAR</div>
+            <div style={{ fontSize: '0.7rem', marginTop: '0.5vh', letterSpacing: '1px' }}>No active orders this week</div>
           </div>
         )}
 
-        {/* Order Rows */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          {orders.map((order, i) => {
-            const urgency = getUrgency(order.dueDate);
-            const colors = urgencyColors[urgency];
-            const statusStyle = getStatusStyle(order.status);
+        {/* ORDER ROWS */}
+        {!loading && !error && orders.length > 0 && (
+          <div style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5vh',
+            overflow: 'hidden',
+          }}>
+            {orders.map((order) => {
+              const urgency = getUrgency(order.dueDate);
+              const u = URGENCY[urgency];
+              const s = STATUS_STYLE[order.status] || { bg: '#27272a', text: '#71717a' };
 
-            return (
-              <div
-                key={order.id}
-                style={{
+              return (
+                <div key={order.id} style={{
                   display: 'grid',
-                  gridTemplateColumns: '120px 1fr 160px 180px 80px 90px 100px 220px',
-                  gap: '12px',
+                  gridTemplateColumns: COLS,
+                  gap: '1vw',
                   alignItems: 'center',
-                  padding: '14px 16px',
+                  padding: '0 1vw',
+                  flex: 1,
                   background: '#111113',
-                  border: `1px solid ${colors.dimmed}`,
-                  borderLeft: `4px solid ${colors.accent}`,
-                  animation: `fadeIn 0.3s ease ${i * 0.04}s both`,
-                  transition: 'background 0.2s',
-                }}
-              >
-                {/* Due Date */}
-                <div>
-                  <div style={{
-                    fontFamily: 'Barlow Condensed, sans-serif',
-                    fontSize: '1.4rem',
-                    fontWeight: 700,
-                    color: colors.text,
-                    lineHeight: 1,
-                  }}>
-                    {formatDate(order.dueDate)}
-                  </div>
-                  {urgencyLabels[urgency] && (
+                  border: `1px solid ${u.dim}`,
+                  borderLeft: `4px solid ${u.accent}`,
+                  minHeight: 0,
+                }}>
+
+                  {/* Due */}
+                  <div>
                     <div style={{
-                      fontSize: '0.55rem',
-                      fontFamily: 'IBM Plex Mono',
-                      color: colors.accent,
-                      letterSpacing: '1px',
-                      marginTop: '3px',
-                      opacity: 0.8,
+                      fontFamily: 'Barlow Condensed',
+                      fontSize: 'clamp(1rem, 2.4vh, 1.8rem)',
+                      fontWeight: 700,
+                      color: u.text,
+                      lineHeight: 1,
                     }}>
-                      {urgencyLabels[urgency]}
+                      {formatDate(order.dueDate)}
                     </div>
-                  )}
-                </div>
+                    {u.label && (
+                      <div style={{
+                        fontSize: 'clamp(0.45rem, 0.9vh, 0.6rem)',
+                        color: u.accent,
+                        letterSpacing: '1px',
+                        marginTop: '0.2vh',
+                        fontWeight: 700,
+                      }}>
+                        {u.label}
+                      </div>
+                    )}
+                  </div>
 
-                {/* Client */}
-                <div style={{
-                  fontFamily: 'Barlow Condensed, sans-serif',
-                  fontSize: '1.5rem',
-                  fontWeight: 700,
-                  color: '#f4f4f5',
-                  letterSpacing: '0.5px',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}>
-                  {order.client}
-                </div>
-
-                {/* Status */}
-                <div>
-                  <span style={{
-                    display: 'inline-block',
-                    padding: '4px 10px',
-                    background: statusStyle.bg,
-                    color: statusStyle.color,
-                    fontSize: '0.7rem',
-                    fontFamily: 'IBM Plex Mono',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '1px',
+                  {/* Client */}
+                  <div style={{
+                    fontFamily: 'Barlow Condensed',
+                    fontSize: 'clamp(1rem, 2.6vh, 2rem)',
+                    fontWeight: 700,
+                    color: '#f4f4f5',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
                   }}>
-                    {order.status}
-                  </span>
-                </div>
+                    {order.client}
+                  </div>
 
-                {/* Embellishment */}
-                <div style={{
-                  fontSize: '0.8rem',
-                  fontFamily: 'IBM Plex Mono',
-                  color: '#a1a1aa',
-                }}>
-                  {order.embellishment || '--'}
-                </div>
+                  {/* Status */}
+                  <div>
+                    <span style={{
+                      display: 'inline-block',
+                      padding: '0.3vh 0.6vw',
+                      background: s.bg,
+                      color: s.text,
+                      fontSize: 'clamp(0.5rem, 1vh, 0.7rem)',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '1px',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {order.status}
+                    </span>
+                  </div>
 
-                {/* Quantity */}
-                <div style={{
-                  fontFamily: 'Barlow Condensed, sans-serif',
-                  fontSize: '1.6rem',
-                  fontWeight: 900,
-                  color: colors.text,
-                  opacity: 0.9,
-                }}>
-                  {order.quantity || '--'}
-                </div>
+                  {/* Embellishment */}
+                  <div style={{
+                    fontSize: 'clamp(0.6rem, 1.3vh, 0.9rem)',
+                    color: '#a1a1aa',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}>
+                    {order.embellishment || '--'}
+                  </div>
 
-                {/* Time */}
-                <div style={{
-                  fontSize: '0.8rem',
-                  fontFamily: 'IBM Plex Mono',
-                  color: '#71717a',
-                }}>
-                  {order.time || '--'}
-                </div>
+                  {/* Qty */}
+                  <div style={{
+                    fontFamily: 'Barlow Condensed',
+                    fontSize: 'clamp(1rem, 2.4vh, 1.8rem)',
+                    fontWeight: 900,
+                    color: u.text,
+                  }}>
+                    {order.quantity || '--'}
+                  </div>
 
-                {/* Bin */}
-                <div style={{
-                  fontSize: '0.85rem',
-                  fontFamily: 'IBM Plex Mono',
-                  color: '#a1a1aa',
-                  fontWeight: 600,
-                }}>
-                  {order.bin || '--'}
-                </div>
+                  {/* Time */}
+                  <div style={{
+                    fontSize: 'clamp(0.55rem, 1.2vh, 0.85rem)',
+                    color: '#71717a',
+                  }}>
+                    {order.time || '--'}
+                  </div>
 
-                {/* Employee */}
-                <div style={{
-                  fontSize: '0.8rem',
-                  fontFamily: 'IBM Plex Mono',
-                  color: '#71717a',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}>
-                  {order.employee || '--'}
+                  {/* Bin - chips */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3vw', alignItems: 'center', overflow: 'hidden' }}>
+                    {order.bin && order.bin.length > 0
+                      ? order.bin.map(b => <Chip key={b} label={b} palette={BIN_COLORS} />)
+                      : <span style={{ color: '#3f3f46', fontSize: '0.75rem' }}>--</span>
+                    }
+                  </div>
+
+                  {/* Employee - chips */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3vw', alignItems: 'center', overflow: 'hidden' }}>
+                    {order.employees && order.employees.length > 0
+                      ? order.employees.map(emp => <Chip key={emp} label={emp} palette={EMPLOYEE_COLORS} />)
+                      : <span style={{ color: '#3f3f46', fontSize: '0.75rem' }}>--</span>
+                    }
+                  </div>
+
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+        )}
+
+        {/* LEGEND */}
+        <div style={{
+          display: 'flex',
+          gap: '2vw',
+          paddingTop: '0.8vh',
+          borderTop: '1px solid #18181b',
+          flexShrink: 0,
+          alignItems: 'center',
+        }}>
+          {[
+            { label: 'Overdue', color: '#ef4444' },
+            { label: 'Due Today', color: '#f97316' },
+            { label: 'Due Tomorrow', color: '#eab308' },
+            { label: 'On Track', color: '#22c55e' },
+          ].map(({ label, color }) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.4vw' }}>
+              <div style={{ width: '0.6vw', height: '0.6vw', background: color, flexShrink: 0 }} />
+              <span style={{ fontSize: 'clamp(0.45rem, 0.9vh, 0.65rem)', color: '#52525b', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                {label}
+              </span>
+            </div>
+          ))}
+          <div style={{ marginLeft: 'auto', fontSize: 'clamp(0.45rem, 0.9vh, 0.65rem)', color: '#3f3f46', letterSpacing: '1px' }}>
+            AUTO-REFRESHES EVERY 30S
+          </div>
         </div>
 
-        {/* Legend */}
-        {orders.length > 0 && (
-          <div style={{
-            display: 'flex',
-            gap: '24px',
-            marginTop: '24px',
-            paddingTop: '16px',
-            borderTop: '1px solid #18181b',
-          }}>
-            {[
-              { label: 'Overdue', color: '#ef4444' },
-              { label: 'Due Today', color: '#f97316' },
-              { label: 'Due Tomorrow', color: '#eab308' },
-              { label: 'On Track', color: '#22c55e' },
-            ].map(({ label, color }) => (
-              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <div style={{ width: '10px', height: '10px', background: color, flexShrink: 0 }} />
-                <span style={{ fontSize: '0.6rem', color: '#52525b', letterSpacing: '1px', textTransform: 'uppercase' }}>
-                  {label}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
-
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateX(-8px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-      `}</style>
     </>
   );
 }
