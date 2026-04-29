@@ -1,15 +1,28 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 
-const EMPLOYEE_COLORS = [
+// Named employee colors - add/edit names here to assign specific colors
+// Any employee NOT in this list gets a fallback color from EMPLOYEE_FALLBACK_COLORS
+const EMPLOYEE_NAMED_COLORS = {
+  'Nick':  { bg: '#1e3a5f', text: '#60a5fa' },  // blue
+  'Lily':    { bg: '#1a3a2a', text: '#4ade80' },  // green
+  'Mitch':   { bg: '#3a2a1a', text: '#fb923c' },  // orange
+  'Maddie':     { bg: '#2a1a3a', text: '#e879f9' },  // pink/magenta
+  'Joe':   { bg: '#1a3a3a', text: '#2dd4bf' },  // teal
+  'Angie':    { bg: '#3a3a1a', text: '#facc15' },  // yellow
+  'Sarah':  { bg: '#1a2a3a', text: '#38bdf8' },  // sky
+};
+
+const EMPLOYEE_FALLBACK_COLORS = [
   { bg: '#1e3a5f', text: '#60a5fa' },
-  { bg: '#3b1f5e', text: '#c084fc' },
+  { bg: '#3a1a1a', text: '#f87171' },
   { bg: '#1a3a2a', text: '#4ade80' },
-  { bg: '#5e3a1a', text: '#fb923c' },
-  { bg: '#5e1a2a', text: '#f87171' },
-  { bg: '#1a3a5e', text: '#38bdf8' },
+  { bg: '#3a2a1a', text: '#fb923c' },
+  { bg: '#2a1a3a', text: '#e879f9' },
+  { bg: '#1a3a3a', text: '#2dd4bf' },
   { bg: '#3a3a1a', text: '#facc15' },
-  { bg: '#1a5e5e', text: '#2dd4bf' },
+  { bg: '#1a2a3a', text: '#38bdf8' },
+  { bg: '#2a1a2a', text: '#c084fc' },
 ];
 
 const BIN_COLORS = [
@@ -24,6 +37,10 @@ const BIN_COLORS = [
 ];
 
 const getColorByName = (name, palette) => {
+  // For employees, check named colors first
+  if (palette === EMPLOYEE_FALLBACK_COLORS && EMPLOYEE_NAMED_COLORS[name]) {
+    return EMPLOYEE_NAMED_COLORS[name];
+  }
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);
@@ -377,7 +394,7 @@ export default function Dashboard() {
                   {/* Employee - chips */}
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3vw', alignItems: 'center', overflow: 'hidden' }}>
                     {order.employees && order.employees.length > 0
-                      ? order.employees.map(emp => <Chip key={emp} label={emp} palette={EMPLOYEE_COLORS} />)
+                      ? order.employees.map(emp => <Chip key={emp} label={emp} palette={EMPLOYEE_FALLBACK_COLORS} />)
                       : <span style={{ color: '#3f3f46', fontSize: '0.75rem' }}>--</span>
                     }
                   </div>
