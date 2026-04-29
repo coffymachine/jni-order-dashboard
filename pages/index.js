@@ -102,10 +102,11 @@ export default function Dashboard() {
     return (
       <span style={{
         display: 'inline-block',
-        padding: '0.2vh 0.5vw',
+        padding: '0.3vh 0.6vw',
         background: c.bg,
         color: c.text,
-        fontSize: 'clamp(0.5rem, 1vh, 0.7rem)',
+        fontFamily: 'Barlow Condensed',
+        fontSize: 'clamp(0.8rem, 1.6vh, 1.2rem)',
         fontWeight: 700,
         whiteSpace: 'nowrap',
         letterSpacing: '0.5px',
@@ -313,10 +314,11 @@ export default function Dashboard() {
                   <div>
                     <span style={{
                       display: 'inline-block',
-                      padding: '0.3vh 0.6vw',
+                      padding: '0.4vh 0.7vw',
                       background: s.bg,
                       color: s.text,
-                      fontSize: 'clamp(0.5rem, 1vh, 0.7rem)',
+                      fontFamily: 'Barlow Condensed',
+                      fontSize: 'clamp(0.8rem, 1.6vh, 1.2rem)',
                       fontWeight: 700,
                       textTransform: 'uppercase',
                       letterSpacing: '1px',
@@ -328,11 +330,14 @@ export default function Dashboard() {
 
                   {/* Embellishment */}
                   <div style={{
-                    fontSize: 'clamp(0.6rem, 1.3vh, 0.9rem)',
-                    color: '#a1a1aa',
+                    fontFamily: 'Barlow Condensed',
+                    fontSize: 'clamp(1rem, 2.2vh, 1.6rem)',
+                    fontWeight: 700,
+                    color: '#d4d4d8',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
+                    letterSpacing: '0.3px',
                   }}>
                     {order.embellishment || '--'}
                   </div>
@@ -349,8 +354,11 @@ export default function Dashboard() {
 
                   {/* Time */}
                   <div style={{
-                    fontSize: 'clamp(0.55rem, 1.2vh, 0.85rem)',
-                    color: '#71717a',
+                    fontFamily: 'Barlow Condensed',
+                    fontSize: 'clamp(1rem, 2.2vh, 1.6rem)',
+                    fontWeight: 700,
+                    color: '#a1a1aa',
+                    letterSpacing: '0.3px',
                   }}>
                     {order.time || '--'}
                   </div>
