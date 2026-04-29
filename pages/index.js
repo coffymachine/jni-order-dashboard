@@ -77,9 +77,10 @@ export default function Dashboard() {
 
   const getUrgency = (dueDate) => {
     if (!dueDate) return 'neutral';
-    const due = new Date(dueDate);
+    // Parse as local date to avoid UTC shift
+    const [year, month, day] = dueDate.split('T')[0].split('-').map(Number);
+    const due = new Date(year, month - 1, day);
     const today = new Date();
-    due.setHours(0,0,0,0);
     today.setHours(0,0,0,0);
     const diff = Math.floor((due - today) / 86400000);
     if (diff < 0) return 'overdue';
@@ -90,7 +91,9 @@ export default function Dashboard() {
 
   const formatDate = (ds) => {
     if (!ds) return '--';
-    const d = new Date(ds);
+    // Parse as local date by appending T00:00:00 to avoid UTC-to-local shift
+    const [year, month, day] = ds.split('T')[0].split('-').map(Number);
+    const d = new Date(year, month - 1, day);
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
