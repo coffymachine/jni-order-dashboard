@@ -63,39 +63,29 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     const orders = data.results.map(page => {
-      let employee = '';
-      const empProp = page.properties['Employee'];
-      if (empProp?.multi_select) {
-        employee = empProp.multi_select.map(e => e.name).join(', ');
-      } else if (empProp?.rich_text) {
-        employee = empProp.rich_text[0]?.plain_text || '';
-      }
+      const props = page.properties;
 
-      let embellishment = '';
-      const embProp = page.properties['Embellishment'];
-      if (embProp?.multi_select) {
-        embellishment = embProp.multi_select.map(e => e.name).join(', ');
-      } else if (embProp?.select) {
-        embellishment = embProp.select?.name || '';
-      }
+      // Qty is a rich_text field
+      const quantity = props['Quantity']?.rich_text?.[0]?.plain_text || '';
 
-      let bin = '';
-      const binProp = page.properties['Bin'];
-      if (binProp?.select) {
-        bin = binProp.select?.name || '';
-      } else if (binProp?.rich_text) {
-        bin = binProp.rich_text[0]?.plain_text || '';
-      }
+      // Bin is a multi_select field - return array of names
+      const bin = props['Bin']?.multi_select?.map(b => b.name) || [];
+
+      // Employee is multi_select - return array of names
+      const employees = props['Employee']?.multi_select?.map(e => e.name) || [];
+
+      // Embellishment is multi_select
+      const embellishment = props['Embellishment']?.multi_select?.map(e => e.name).join(', ') || '';
 
       return {
         id: page.id,
-        client: page.properties['Client']?.title?.[0]?.plain_text || 'Unknown',
-        dueDate: page.properties['Due By']?.date?.start || '',
-        status: page.properties['Status']?.status?.name || page.properties['Status']?.select?.name || 'Not started',
+        client: props['Client']?.title?.[0]?.plain_text || 'Unknown',
+        dueDate: props['Due By']?.date?.start || '',
+        status: props['Status']?.status?.name || props['Status']?.select?.name || 'Not started',
         embellishment,
-        employee,
-        quantity: page.properties['Quantity']?.number || 0,
-        time: page.properties['Time']?.rich_text?.[0]?.plain_text || '',
+        employees,
+        quantity,
+        time: props['Time']?.rich_text?.[0]?.plain_text || '',
         bin,
       };
     });
