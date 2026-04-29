@@ -19,21 +19,42 @@ export default async function handler(req, res) {
         'Notion-Version': '2022-06-28',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        filter: {
-          property: 'Status',
-          status: {
-            does_not_equal: 'Complete',
-          },
-        },
-        sorts: [
-          {
-            property: 'Due By',
-            direction: 'ascending',
-          },
+      const today = new Date();
+const eightDaysOut = new Date();
+eightDaysOut.setDate(today.getDate() + 8);
+
+// ...then inside the fetch body:
+body: JSON.stringify({
+  filter: {
+    and: [
+      {
+        or: [
+          { property: 'Status', status: { equals: 'Not started' } },
+          { property: 'Status', status: { equals: 'Quoted' } },
+          { property: 'Status', status: { equals: 'In progress' } },
         ],
-      }),
-    });
+      },
+      {
+        property: 'Due By',
+        date: {
+          on_or_after: today.toISOString().split('T')[0],
+        },
+      },
+      {
+        property: 'Due By',
+        date: {
+          on_or_before: eightDaysOut.toISOString().split('T')[0],
+        },
+      },
+    ],
+  },
+  sorts: [
+    {
+      property: 'Due By',
+      direction: 'ascending',
+    },
+  ],
+}),
 
     if (!response.ok) {
       const errorData = await response.json();
