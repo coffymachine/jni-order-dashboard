@@ -287,7 +287,7 @@ export default function Dashboard() {
                   alignItems: 'center',
                   padding: '0 1vw',
                   flex: 1,
-                  background: '#111113',
+                  background: i % 2 === 0 ? '#111113' : '#161618',
                   border: `1px solid ${u.dim}`,
                   borderLeft: `4px solid ${u.accent}`,
                   minHeight: 0,
