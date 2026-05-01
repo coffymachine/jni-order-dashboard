@@ -274,7 +274,7 @@ export default function Dashboard() {
             gap: '0.5vh',
             overflow: 'hidden',
           }}>
-            {orders.map((order) => {
+            {orders.map((order, i) => {
               const urgency = getUrgency(order.dueDate);
               const u = URGENCY[urgency];
               const s = STATUS_STYLE[order.status] || { bg: '#27272a', text: '#71717a' };
