@@ -233,7 +233,7 @@ export default function Dashboard() {
         }}>
           {['Due', 'Client', 'Status', 'Embellishment', 'Qty', 'Time', 'Bin', 'Employee'].map(h => (
             <div key={h} style={{
-              fontFamily: 'JetBrains Mono',
+              fontFamily: 'Inter, sans-serif',
               fontSize: 'clamp(0.6rem, 1.2vh, 0.85rem)',
               fontWeight: 700,
               textTransform: 'uppercase',
