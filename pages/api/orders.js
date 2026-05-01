@@ -27,24 +27,32 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         filter: {
+  and: [
+    {
+      or: [
+        { property: 'Status', status: { equals: 'Not started' } },
+        { property: 'Status', status: { equals: 'Quoted' } },
+        { property: 'Status', status: { equals: 'In progress' } },
+      ],
+    },
+    {
+      or: [
+        // Jobs due within the next 8 days
+        {
           and: [
-            {
-              or: [
-                { property: 'Status', status: { equals: 'Not started' } },
-                { property: 'Status', status: { equals: 'Quoted' } },
-                { property: 'Status', status: { equals: 'In progress' } },
-              ],
-            },
-            {
-              property: 'Due By',
-              date: { on_or_after: todayStr },
-            },
-            {
-              property: 'Due By',
-              date: { on_or_before: eightDaysOutStr },
-            },
+            { property: 'Due By', date: { on_or_after: todayStr } },
+            { property: 'Due By', date: { on_or_before: eightDaysOutStr } },
           ],
         },
+        // OR jobs that are overdue (due before today)
+        {
+          property: 'Due By',
+          date: { before: todayStr },
+        },
+      ],
+    },
+  ],
+},
         sorts: [
           {
             property: 'Due By',
