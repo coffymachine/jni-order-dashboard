@@ -145,7 +145,7 @@ export default function Dashboard() {
         <title>Order Board</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
-        <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet" />
       </Head>
 
       <style global jsx>{`
@@ -153,7 +153,7 @@ export default function Dashboard() {
         html, body {
           width: 100%; height: 100%; overflow: hidden;
           background: #09090b;
-          font-family: 'JetBrains Mono', monospace;
+          font-family: 'Inter', sans-serif;
           color: #f4f4f5;
         }
       `}</style>
