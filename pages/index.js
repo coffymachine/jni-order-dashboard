@@ -125,11 +125,11 @@ export default function Dashboard() {
         padding: '0.3vh 0.6vw',
         background: c.bg,
         color: c.text,
-        fontFamily: 'Barlow Condensed',
-        fontSize: 'clamp(0.8rem, 1.6vh, 1.2rem)',
+        fontFamily: 'Inter',
+        fontSize: 'clamp(0.6rem, 1.1vh, 0.8rem)',
         fontWeight: 700,
         whiteSpace: 'nowrap',
-        letterSpacing: '0.5px',
+        letterSpacing: '0.3px',
         borderRadius: '2px',
       }}>
         {label}
@@ -145,7 +145,7 @@ export default function Dashboard() {
         <title>Order Board</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet" />
       </Head>
 
       <style global jsx>{`
@@ -181,8 +181,8 @@ export default function Dashboard() {
         }}>
           <div>
             <div style={{
-              fontFamily: 'Barlow Condensed',
-              fontSize: 'clamp(2rem, 5vh, 4rem)',
+              fontFamily: 'Inter',
+              fontSize: 'clamp(1.5rem, 3.5vh, 3rem)',
               fontWeight: 900,
               textTransform: 'uppercase',
               letterSpacing: '-1px',
@@ -203,8 +203,8 @@ export default function Dashboard() {
           </div>
           <div style={{ textAlign: 'right' }}>
             <div style={{
-              fontFamily: 'Barlow Condensed',
-              fontSize: 'clamp(1.8rem, 4vh, 3rem)',
+              fontFamily: 'Inter',
+              fontSize: 'clamp(1.4rem, 3vh, 2.2rem)',
               fontWeight: 700,
               letterSpacing: '1px',
               lineHeight: 1,
@@ -260,7 +260,7 @@ export default function Dashboard() {
         )}
         {!loading && !error && orders.length === 0 && (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#52525b' }}>
-            <div style={{ fontFamily: 'Barlow Condensed', fontSize: 'clamp(1.5rem, 4vh, 2.5rem)', fontWeight: 700, letterSpacing: '3px' }}>ALL CLEAR</div>
+            <div style={{ fontFamily: 'Inter', fontSize: 'clamp(1.2rem, 3vh, 2rem)', fontWeight: 700, letterSpacing: '3px' }}>ALL CLEAR</div>
             <div style={{ fontSize: '0.7rem', marginTop: '0.5vh', letterSpacing: '1px' }}>No active orders this week</div>
           </div>
         )}
@@ -296,8 +296,8 @@ export default function Dashboard() {
                   {/* Due */}
                   <div>
                     <div style={{
-                      fontFamily: 'Barlow Condensed',
-                      fontSize: 'clamp(1rem, 2.4vh, 1.8rem)',
+                      fontFamily: 'Inter',
+                      fontSize: 'clamp(0.85rem, 1.8vh, 1.3rem)',
                       fontWeight: 700,
                       color: u.text,
                       lineHeight: 1,
@@ -319,8 +319,8 @@ export default function Dashboard() {
 
                   {/* Client */}
                   <div style={{
-                    fontFamily: 'Barlow Condensed',
-                    fontSize: 'clamp(1rem, 2.6vh, 2rem)',
+                    fontFamily: 'Inter',
+                    fontSize: 'clamp(0.85rem, 1.8vh, 1.3rem)',
                     fontWeight: 700,
                     color: '#f4f4f5',
                     whiteSpace: 'nowrap',
@@ -337,8 +337,8 @@ export default function Dashboard() {
                       padding: '0.4vh 0.7vw',
                       background: s.bg,
                       color: s.text,
-                      fontFamily: 'Barlow Condensed',
-                      fontSize: 'clamp(0.8rem, 1.6vh, 1.2rem)',
+                      fontFamily: 'Inter',
+                      fontSize: 'clamp(0.6rem, 1.1vh, 0.8rem)',
                       fontWeight: 700,
                       textTransform: 'uppercase',
                       letterSpacing: '1px',
@@ -350,9 +350,9 @@ export default function Dashboard() {
 
                   {/* Embellishment */}
                   <div style={{
-                    fontFamily: 'Barlow Condensed',
-                    fontSize: 'clamp(1rem, 2.2vh, 1.6rem)',
-                    fontWeight: 700,
+                    fontFamily: 'Inter',
+                    fontSize: 'clamp(0.75rem, 1.5vh, 1.1rem)',
+                    fontWeight: 600,
                     color: '#d4d4d8',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
@@ -364,8 +364,8 @@ export default function Dashboard() {
 
                   {/* Qty */}
                   <div style={{
-                    fontFamily: 'Barlow Condensed',
-                    fontSize: 'clamp(1rem, 2.4vh, 1.8rem)',
+                    fontFamily: 'Inter',
+                    fontSize: 'clamp(0.85rem, 1.8vh, 1.3rem)',
                     fontWeight: 900,
                     color: u.text,
                   }}>
@@ -374,9 +374,9 @@ export default function Dashboard() {
 
                   {/* Time */}
                   <div style={{
-                    fontFamily: 'Barlow Condensed',
-                    fontSize: 'clamp(1rem, 2.2vh, 1.6rem)',
-                    fontWeight: 700,
+                    fontFamily: 'Inter',
+                    fontSize: 'clamp(0.75rem, 1.5vh, 1.1rem)',
+                    fontWeight: 600,
                     color: '#a1a1aa',
                     letterSpacing: '0.3px',
                   }}>
