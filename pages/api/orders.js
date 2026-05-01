@@ -27,28 +27,44 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         filter: {
-  and: [
+  or: [
     {
-      or: [
+      and: [
         { property: 'Status', status: { equals: 'Not started' } },
-        { property: 'Status', status: { equals: 'Quoted' } },
-        { property: 'Status', status: { equals: 'In progress' } },
+        { property: 'Due By', date: { on_or_after: todayStr } },
+        { property: 'Due By', date: { on_or_before: eightDaysOutStr } },
       ],
     },
     {
-      or: [
-        // Jobs due within the next 8 days
-        {
-          and: [
-            { property: 'Due By', date: { on_or_after: todayStr } },
-            { property: 'Due By', date: { on_or_before: eightDaysOutStr } },
-          ],
-        },
-        // OR jobs that are overdue (due before today)
-        {
-          property: 'Due By',
-          date: { before: todayStr },
-        },
+      and: [
+        { property: 'Status', status: { equals: 'Quoted' } },
+        { property: 'Due By', date: { on_or_after: todayStr } },
+        { property: 'Due By', date: { on_or_before: eightDaysOutStr } },
+      ],
+    },
+    {
+      and: [
+        { property: 'Status', status: { equals: 'In progress' } },
+        { property: 'Due By', date: { on_or_after: todayStr } },
+        { property: 'Due By', date: { on_or_before: eightDaysOutStr } },
+      ],
+    },
+    {
+      and: [
+        { property: 'Status', status: { equals: 'Not started' } },
+        { property: 'Due By', date: { before: todayStr } },
+      ],
+    },
+    {
+      and: [
+        { property: 'Status', status: { equals: 'Quoted' } },
+        { property: 'Due By', date: { before: todayStr } },
+      ],
+    },
+    {
+      and: [
+        { property: 'Status', status: { equals: 'In progress' } },
+        { property: 'Due By', date: { before: todayStr } },
       ],
     },
   ],
