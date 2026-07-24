@@ -26,49 +26,52 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        // Show active (non-Done) jobs that are either:
+        // - due within the next 8 days, OR
+        // - overdue (due before today) regardless of how far past
         filter: {
-  or: [
-    {
-      and: [
-        { property: 'Status', status: { equals: 'Not started' } },
-        { property: 'Due By', date: { on_or_after: todayStr } },
-        { property: 'Due By', date: { on_or_before: eightDaysOutStr } },
-      ],
-    },
-    {
-      and: [
-        { property: 'Status', status: { equals: 'Quoted' } },
-        { property: 'Due By', date: { on_or_after: todayStr } },
-        { property: 'Due By', date: { on_or_before: eightDaysOutStr } },
-      ],
-    },
-    {
-      and: [
-        { property: 'Status', status: { equals: 'In progress' } },
-        { property: 'Due By', date: { on_or_after: todayStr } },
-        { property: 'Due By', date: { on_or_before: eightDaysOutStr } },
-      ],
-    },
-    {
-      and: [
-        { property: 'Status', status: { equals: 'Not started' } },
-        { property: 'Due By', date: { before: todayStr } },
-      ],
-    },
-    {
-      and: [
-        { property: 'Status', status: { equals: 'Quoted' } },
-        { property: 'Due By', date: { before: todayStr } },
-      ],
-    },
-    {
-      and: [
-        { property: 'Status', status: { equals: 'In progress' } },
-        { property: 'Due By', date: { before: todayStr } },
-      ],
-    },
-  ],
-},
+          or: [
+            {
+              and: [
+                { property: 'Status', status: { equals: 'Not started' } },
+                { property: 'Due By', date: { on_or_after: todayStr } },
+                { property: 'Due By', date: { on_or_before: eightDaysOutStr } },
+              ],
+            },
+            {
+              and: [
+                { property: 'Status', status: { equals: 'Quoted' } },
+                { property: 'Due By', date: { on_or_after: todayStr } },
+                { property: 'Due By', date: { on_or_before: eightDaysOutStr } },
+              ],
+            },
+            {
+              and: [
+                { property: 'Status', status: { equals: 'In progress' } },
+                { property: 'Due By', date: { on_or_after: todayStr } },
+                { property: 'Due By', date: { on_or_before: eightDaysOutStr } },
+              ],
+            },
+            {
+              and: [
+                { property: 'Status', status: { equals: 'Not started' } },
+                { property: 'Due By', date: { before: todayStr } },
+              ],
+            },
+            {
+              and: [
+                { property: 'Status', status: { equals: 'Quoted' } },
+                { property: 'Due By', date: { before: todayStr } },
+              ],
+            },
+            {
+              and: [
+                { property: 'Status', status: { equals: 'In progress' } },
+                { property: 'Due By', date: { before: todayStr } },
+              ],
+            },
+          ],
+        },
         sorts: [
           {
             property: 'Due By',

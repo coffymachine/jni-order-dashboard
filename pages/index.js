@@ -1,28 +1,28 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 
-// Named employee colors - add/edit names here to assign specific colors
-// Any employee NOT in this list gets a fallback color from EMPLOYEE_FALLBACK_COLORS
+// Named employee colors - add/edit names here to assign specific, distinct colors.
+// Any employee NOT listed here gets a fallback color from EMPLOYEE_FALLBACK_COLORS.
 const EMPLOYEE_NAMED_COLORS = {
-  'Nick':  { bg: '#1e3a5f', text: '#60a5fa' },  // blue
-  'Lily':    { bg: '#1a3a2a', text: '#4ade80' },  // green
-  'Mitch':   { bg: '#3a2a1a', text: '#fb923c' },  // orange
-  'Maddie':     { bg: '#2a1a3a', text: '#e879f9' },  // pink/magenta
-  'Joe':   { bg: '#1a3a3a', text: '#2dd4bf' },  // teal
-  'Angie':    { bg: '#3a3a1a', text: '#facc15' },  // yellow
-  'Sarah':  { bg: '#1a2a3a', text: '#38bdf8' },  // sky
+  'Nick':   { bg: '#1e3a5f', text: '#60a5fa' },  // blue
+  'Lily':   { bg: '#1a3a2a', text: '#4ade80' },  // green
+  'Mitch':  { bg: '#4a2f10', text: '#f59e0b' },  // amber (distinct from Maddie's pink)
+  'Maddie': { bg: '#3a1030', text: '#f472b6' },  // pink
+  'Joe':    { bg: '#0f3a3a', text: '#2dd4bf' },  // teal
+  'Angie':  { bg: '#3a3a0f', text: '#facc15' },  // yellow
+  'Sarah':  { bg: '#0f2a4a', text: '#38bdf8' },  // sky blue
 };
 
 const EMPLOYEE_FALLBACK_COLORS = [
   { bg: '#1e3a5f', text: '#60a5fa' },
   { bg: '#3a1a1a', text: '#f87171' },
   { bg: '#1a3a2a', text: '#4ade80' },
-  { bg: '#3a2a1a', text: '#fb923c' },
-  { bg: '#2a1a3a', text: '#e879f9' },
-  { bg: '#1a3a3a', text: '#2dd4bf' },
-  { bg: '#3a3a1a', text: '#facc15' },
-  { bg: '#1a2a3a', text: '#38bdf8' },
-  { bg: '#2a1a2a', text: '#c084fc' },
+  { bg: '#4a2f10', text: '#f59e0b' },
+  { bg: '#2a1a3a', text: '#a78bfa' },
+  { bg: '#0f3a3a', text: '#2dd4bf' },
+  { bg: '#3a3a0f', text: '#facc15' },
+  { bg: '#0f2a4a', text: '#38bdf8' },
+  { bg: '#3a1030', text: '#f472b6' },
 ];
 
 const BIN_COLORS = [
@@ -37,7 +37,7 @@ const BIN_COLORS = [
 ];
 
 const getColorByName = (name, palette) => {
-  // For employees, check named colors first
+  // Employees get their named color first, if one is assigned
   if (palette === EMPLOYEE_FALLBACK_COLORS && EMPLOYEE_NAMED_COLORS[name]) {
     return EMPLOYEE_NAMED_COLORS[name];
   }
@@ -92,13 +92,18 @@ export default function Dashboard() {
     return () => { clearInterval(refresh); clearInterval(tick); };
   }, []);
 
+  // Parse Notion's YYYY-MM-DD as a LOCAL date, not UTC, to avoid the
+  // off-by-one-day bug caused by timezone conversion.
+  const parseLocalDate = (dateString) => {
+    const [year, month, day] = dateString.split('T')[0].split('-').map(Number);
+    return new Date(year, month - 1, day);
+  };
+
   const getUrgency = (dueDate) => {
     if (!dueDate) return 'neutral';
-    // Parse as local date to avoid UTC shift
-    const [year, month, day] = dueDate.split('T')[0].split('-').map(Number);
-    const due = new Date(year, month - 1, day);
+    const due = parseLocalDate(dueDate);
     const today = new Date();
-    today.setHours(0,0,0,0);
+    today.setHours(0, 0, 0, 0);
     const diff = Math.floor((due - today) / 86400000);
     if (diff < 0) return 'overdue';
     if (diff === 0) return 'today';
@@ -108,9 +113,7 @@ export default function Dashboard() {
 
   const formatDate = (ds) => {
     if (!ds) return '--';
-    // Parse as local date by appending T00:00:00 to avoid UTC-to-local shift
-    const [year, month, day] = ds.split('T')[0].split('-').map(Number);
-    const d = new Date(year, month - 1, day);
+    const d = parseLocalDate(ds);
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
@@ -192,13 +195,15 @@ export default function Dashboard() {
               ORDER BOARD
             </div>
             <div style={{
+              fontFamily: 'Inter',
               fontSize: 'clamp(0.5rem, 1vh, 0.75rem)',
+              fontWeight: 600,
               color: '#52525b',
               letterSpacing: '3px',
               textTransform: 'uppercase',
               marginTop: '0.3vh',
             }}>
-              Active Jobs &mdash; Next 8 Days
+              Active Jobs &mdash; Next 8 Days + Overdue
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>
@@ -212,7 +217,9 @@ export default function Dashboard() {
               {now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
             </div>
             <div style={{
+              fontFamily: 'Inter',
               fontSize: 'clamp(0.5rem, 1vh, 0.7rem)',
+              fontWeight: 600,
               color: '#52525b',
               letterSpacing: '1px',
               textTransform: 'uppercase',
@@ -261,7 +268,7 @@ export default function Dashboard() {
         {!loading && !error && orders.length === 0 && (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#52525b' }}>
             <div style={{ fontFamily: 'Inter', fontSize: 'clamp(1.2rem, 3vh, 2rem)', fontWeight: 700, letterSpacing: '3px' }}>ALL CLEAR</div>
-            <div style={{ fontSize: '0.7rem', marginTop: '0.5vh', letterSpacing: '1px' }}>No active orders this week</div>
+            <div style={{ fontSize: '0.7rem', marginTop: '0.5vh', letterSpacing: '1px' }}>No active orders</div>
           </div>
         )}
 
@@ -306,11 +313,12 @@ export default function Dashboard() {
                     </div>
                     {u.label && (
                       <div style={{
+                        fontFamily: 'Inter',
                         fontSize: 'clamp(0.45rem, 0.9vh, 0.6rem)',
+                        fontWeight: 700,
                         color: u.accent,
                         letterSpacing: '1px',
                         marginTop: '0.2vh',
-                        fontWeight: 700,
                       }}>
                         {u.label}
                       </div>
@@ -422,12 +430,12 @@ export default function Dashboard() {
           ].map(({ label, color }) => (
             <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.4vw' }}>
               <div style={{ width: '0.6vw', height: '0.6vw', background: color, flexShrink: 0 }} />
-              <span style={{ fontSize: 'clamp(0.45rem, 0.9vh, 0.65rem)', color: '#52525b', letterSpacing: '1px', textTransform: 'uppercase' }}>
+              <span style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: 'clamp(0.45rem, 0.9vh, 0.65rem)', color: '#52525b', letterSpacing: '1px', textTransform: 'uppercase' }}>
                 {label}
               </span>
             </div>
           ))}
-          <div style={{ marginLeft: 'auto', fontSize: 'clamp(0.45rem, 0.9vh, 0.65rem)', color: '#3f3f46', letterSpacing: '1px' }}>
+          <div style={{ marginLeft: 'auto', fontFamily: 'Inter', fontWeight: 600, fontSize: 'clamp(0.45rem, 0.9vh, 0.65rem)', color: '#3f3f46', letterSpacing: '1px' }}>
             AUTO-REFRESHES EVERY 30S
           </div>
         </div>
